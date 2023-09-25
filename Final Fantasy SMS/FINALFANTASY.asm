@@ -79,6 +79,7 @@ banks 10         ;
 ;RAM section variables - NOTE: C0B0-C0D5 is occupied by PSGlib RAM variables. Don't define anything in that window!
 .define vblank_flag $C000
 .define intro_color $C064
+.define framecounter $C0F0
 .define startintrocheck $C0F9
 .define respondrate $C0FA
 .define cur_pal $C3C0
@@ -211,6 +212,12 @@ EnterIntroStory:
     out (VDPControl),a
 	ei
 	
+	ld a,$20 ;blue out cur_pal
+	ld (cur_pal+$00),a
+	ld (cur_pal+$01),a
+	ld (cur_pal+$02),a
+	ld (cur_pal+$03),a
+	ld (cur_pal+$04),a
 	jp IntroStory_MainLoop
 ;-:	call WaitForVBlank
 ;	call PSGFrame
@@ -315,26 +322,28 @@ IntroStory_MainLoop:
 IntroStory_AnimateRow:
 	ld a,$15 ;load dark gray as first intro color
 	ld (intro_color),a ;store in RAM
-	ld c,$00 ;C register acts as a frame counter
---:	ld (cur_pal+$04),a ;A register still has main color, so store it at text color index
+	ld a,$00
+	ld (framecounter),a
+MainLoop:	
+	ld a,(intro_color)
+	ld (cur_pal+$04),a ;load intro color into text color index
 -:	call IntroStory_Frame ;do a frame
-	inc c ;and count another frame
-	ld a,$0F ;check to see if we're on the 16th frame
-	cp c
+	ld hl,framecounter
+	inc (hl) ;and count another frame
+	ld a,(framecounter) ;check to see if we're on the 16th frame
+	and $0F
 	jr nz,+ ;if not, alternate between main and sub color
 	ld a,(intro_color) ;if we are on even 16th frame, brighten the main color
-	ccf
 	adc $15 ;by adding $15
 	ld (intro_color),a ;and storing this new color
 	cp $54 ;then check to see if we're done.
-	jr nc,-- ;If we aren't done, then continue the loop, otherwise
+	jr nz,MainLoop ;If we aren't done, then continue the loop, otherwise
 	ret ;exit
-+:	ld a,c
++:	ld a,(framecounter)
 	rra ;move the low bit of the frame counter into carry to check if even or odd
-	jr nc,- ;if even frame, use main color next frame
+	jr nc,MainLoop ;if even frame, use main color next frame
 	ld a,(cur_pal+$04)
-	scf
-	sbc $15
+	sub $15
 	jr nz,++
 	ld a,$20
 ++:	ld (cur_pal+$04),a
@@ -369,6 +378,7 @@ DrawPalette_Norm:
 	ld hl,cur_pal
 	ld c,VDPData
 	otir
+	ret
 .ends
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -601,7 +611,7 @@ VDPInitDataEnd:
 ;BKGSPR_IntroPalette - Palette data for the intro (both background and sprite). Note that text tiles use palette index $04
 .section "BKGSPR_IntroPalette" free
 BKGSPR_IntroPalette:
-	.db $20,$20,$15,$2A,$3F ;dark blue, dark blue, dark gray, gray, white
+	.db $20,$20,$20,$20,$20 ;all dark blue
 BKGSPR_IntroPaletteEnd:
 .ends
 
@@ -798,17 +808,18 @@ FontIconsData:
 .incbin "bin\fonticons.bin" fsize FontIconsDataSize
 .ends
 
-;IntroText - PLACEHOLDER UNTIL I FIGURE OUT STRINGMAP
+;IntroText
 .section "IntroText" free
 .stringmaptable FontIconsStringmap "inc\FontIconsStringmap.tbl"
 
 strings.intro:
+	.stringmap FontIconsStringmap, "<br>"
 	.stringmap FontIconsStringmap, "<5>The world is veiled in<br><br>"
 	.stringmap FontIconsStringmap, "<4>darkness. The wind stops,<br><br>"
 	.stringmap FontIconsStringmap, "<9>the sea is wild,<br><br>"
 	.stringmap FontIconsStringmap, "<2>and the earth begins to rot.<br><br>"
 	.stringmap FontIconsStringmap, "<9>The people wait,<br><br>"
-	.stringmap FontIconsStringmap, "<2>their only hope, a prophecy....<br><br>"
+	.stringmap FontIconsStringmap, "<2>their only hope, a prophecy....<br><br><br>"
 	.stringmap FontIconsStringmap, "<1>'When the world is in darkness<br><br>"
 	.stringmap FontIconsStringmap, "<3>Four Warriors will come....'<br><br>"
 	.stringmap FontIconsStringmap, "<3>After a long journey, four<br><br>"

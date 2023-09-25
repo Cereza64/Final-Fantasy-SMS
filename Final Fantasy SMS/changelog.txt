@@ -20,3 +20,11 @@ ISSUES:
 -mildly seizure inducing visuals
 -everything is slow as dirt, may be due to too many calls?
 -background is now black for some reason
+
+9/25/23
+-Almost fixed IntroStory_AnimateRow
+-fixed DrawPalette (just tacked a ret on the end lol)
+
+ISSUES:
+-the entire paragraph is animated and not just a single line going one by one
+-the frame counter is off by one and stops animating on the wrong color
