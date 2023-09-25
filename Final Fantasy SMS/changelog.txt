@@ -1,0 +1,22 @@
+7/29/23
+-created "testintro" and commented out "IntroTilemap" in order to test out using the tileset included. As a result, "introtilemap.bin" is not used here.
+
+8/15/23
+-Enabled interrupts, added interrupt handler
+-added IntroStory_MainLoop, IntroStory_AnimateRow, and IntroStory_Frame
+-put everything into .sections
+
+-Fixed interrupts (possibly), added MemoryFill for RAM, program now loops infinitely on WaitForVBlank for testing purposes
+
+9/24/23
+boy it's been a bit, huh?
+-reworked DrawComplexString (again) to use stringmaps
+-actually using IntroStory_MainLoop now
+-rewrote parts of IntroStory_AnimateRow
+-added DrawPalette, the one thing i forgot to put in the last couple of times and why text didnt change colors
+-commented IntroStory_AnimateRow
+
+ISSUES:
+-mildly seizure inducing visuals
+-everything is slow as dirt, may be due to too many calls?
+-background is now black for some reason
