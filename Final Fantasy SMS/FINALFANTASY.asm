@@ -322,8 +322,6 @@ IntroStory_MainLoop:
 IntroStory_AnimateRow:
 	ld a,$15 ;load dark gray as first intro color
 	ld (intro_color),a ;store in RAM
-	ld a,$00
-	ld (framecounter),a
 MainLoop:	
 	ld a,(intro_color)
 	ld (cur_pal+$04),a ;load intro color into text color index
@@ -341,7 +339,7 @@ MainLoop:
 	ret ;exit
 +:	ld a,(framecounter)
 	rra ;move the low bit of the frame counter into carry to check if even or odd
-	jr nc,MainLoop ;if even frame, use main color next frame
+	jr c,MainLoop ;if even frame, use main color next frame
 	ld a,(cur_pal+$04)
 	sub $15
 	jr nz,++
